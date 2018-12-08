@@ -49,12 +49,6 @@ round(cor(num_df),3) %>%
 | percent\_married       |            -0.10|                   -0.16|                -0.23|            -0.13|         0.34|         -0.14|             -0.63|            -0.03|                NA|               0.27|         0.03|                 -0.10|              1.00|         0.10|
 | birth\_rate            |            -0.04|                   -0.08|                -0.05|            -0.10|        -0.08|         -0.06|              0.02|            -0.02|                NA|              -0.08|         0.00|                  0.01|              0.10|         1.00|
 
-``` r
-pairs(num_df)
-```
-
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-2-1.png)
-
 stepwise
 --------
 

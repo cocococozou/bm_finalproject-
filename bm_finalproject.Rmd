@@ -40,7 +40,6 @@ num_df <- cancer_df %>%
 ```{r}
 round(cor(num_df),3) %>% 
   knitr::kable(digits = 2)
-pairs(num_df)
 ```
 
 
