@@ -7,6 +7,53 @@ output: github_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(multcomp)
+library(faraway) 
+library(ggplot2)
+library(patchwork)
+library("leaps")
+library(caret)
+library(dplyr)
+```
+
+##Read data
+
+```{r}
+ cancer_df <- read.csv(file = "./data/Cancer_Registry.csv") %>% 
+   janitor::clean_names() %>% 
+   na.omit() %>% 
+   separate(geography, into = c("county", "state"),sep = ",") %>% 
+   separate(binned_inc, into = c("binned_inc_low","binned_inc_high"), sep = ",") %>% 
+   mutate(binned_inc_low = str_replace(binned_inc_low,"[(]",""),
+          binned_inc_high = str_replace(binned_inc_high,"[]]",""),
+          binned_inc_low = as.numeric(gsub(",","",binned_inc_low,fixed=TRUE)),
+          binned_inc_high = as.numeric(gsub(",","",binned_inc_high,fixed=TRUE)))
+
+
+num_df <- cancer_df %>% 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female) %>% 
+  dplyr::select(-contains("pct")) 
+  
+```
+
+```{r}
+round(cor(num_df),3) %>% 
+  knitr::kable(digits = 2)
+pairs(num_df)
+```
+
+
+
+##stepwise 
+
+```{r}
+full_model = lm(target_death_rate ~ ., data = num_df)
+summary(full_model)
+
+step_model <- stepAIC(full_model, direction = "both", 
+                      trace = FALSE)
+summary(step_model)
 ```
 
 
