@@ -6,6 +6,57 @@ Coco
 Read data
 ---------
 
+Exploratory Analysis
+--------------------
+
+``` r
+cor(num_df) %>% knitr::kable()
+```
+
+|                         |  avg\_ann\_count|  avg\_deaths\_per\_year|  target\_death\_rate|  incidence\_rate|  med\_income|  pop\_est2015|  poverty\_percent|  study\_per\_cap|  median\_age|  avg\_household\_size|  percent\_married|  pct\_bach\_deg18\_24|  pct\_bach\_deg25\_over|  pct\_employed16\_over|  pct\_unemployed16\_over|  birth\_rate|  median\_inc|  pct\_no\_cov|  black\_high\_ind|
+|-------------------------|----------------:|-----------------------:|--------------------:|----------------:|------------:|-------------:|-----------------:|----------------:|------------:|---------------------:|-----------------:|---------------------:|-----------------------:|----------------------:|------------------------:|------------:|------------:|-------------:|-----------------:|
+| avg\_ann\_count         |        1.0000000|               0.9382324|           -0.1339480|        0.0747173|    0.2505272|     0.9275658|        -0.0885992|        0.0762519|   -0.0229115|             0.0848187|        -0.1655274|             0.2688210|               0.3071750|              0.1662126|                0.0545340|   -0.0411180|    0.2282581|    -0.2181420|         0.1171253|
+| avg\_deaths\_per\_year  |        0.9382324|               1.0000000|           -0.0851532|        0.0633721|    0.2144815|     0.9797042|        -0.0196484|        0.0530066|   -0.0254858|             0.1076423|        -0.2410169|             0.2521097|               0.2886537|              0.0962653|                0.1326806|   -0.0831509|    0.2021459|    -0.1896046|         0.1796549|
+| target\_death\_rate     |       -0.1339480|              -0.0851532|            1.0000000|        0.3953059|   -0.3605578|    -0.1150993|         0.3513716|       -0.0293587|    0.0142876|            -0.0424271|        -0.2211551|            -0.2490342|              -0.4644337|             -0.3560154|                0.3281160|   -0.0868656|   -0.3286698|     0.1558121|         0.1757894|
+| incidence\_rate         |        0.0747173|               0.0633721|            0.3953059|        1.0000000|    0.0224035|     0.0257125|        -0.0229473|        0.0701454|    0.0245092|            -0.1203914|        -0.1445795|             0.0826459|              -0.0073560|              0.0084221|                0.0935346|   -0.1202647|    0.0165010|    -0.2235092|         0.1261541|
+| med\_income             |        0.2505272|               0.2144815|           -0.3605578|        0.0224035|    1.0000000|     0.2257442|        -0.7604683|        0.0189502|   -0.0288561|             0.1593060|         0.2562195|             0.4625371|               0.6672572|              0.6385020|               -0.3440161|   -0.0192905|    0.9153934|    -0.5940330|        -0.0588084|
+| pop\_est2015            |        0.9275658|               0.9797042|           -0.1150993|        0.0257125|    0.2257442|     1.0000000|        -0.0238114|        0.0452891|   -0.0241928|             0.1248059|        -0.2112515|             0.2388230|               0.2905393|              0.1165067|                0.1026772|   -0.0653789|    0.2112351|    -0.1863353|         0.1560494|
+| poverty\_percent        |       -0.0885992|              -0.0196484|            0.3513716|       -0.0229473|   -0.7604683|    -0.0238114|         1.0000000|       -0.0330405|   -0.0149776|             0.0293557|        -0.5837952|            -0.3368828|              -0.4711736|             -0.6885556|                0.5694729|   -0.0269168|   -0.6882453|     0.4664597|         0.2974097|
+| study\_per\_cap         |        0.0762519|               0.0530066|           -0.0293587|        0.0701454|    0.0189502|     0.0452891|        -0.0330405|        1.0000000|   -0.0256269|             0.0039111|        -0.0622367|             0.0445682|               0.0918645|              0.0697429|               -0.0214334|    0.0134288|    0.0042065|    -0.0815652|        -0.0113105|
+| median\_age             |       -0.0229115|              -0.0254858|            0.0142876|        0.0245092|   -0.0288561|    -0.0241928|        -0.0149776|       -0.0256269|    1.0000000|            -0.0402771|         0.0391130|            -0.0029153|              -0.0229929|             -0.0374468|                0.0180069|   -0.0030421|   -0.0175570|     0.0736906|        -0.0100323|
+| avg\_household\_size    |        0.0848187|               0.1076423|           -0.0424271|       -0.1203914|    0.1593060|     0.1248059|         0.0293557|        0.0039111|   -0.0402771|             1.0000000|        -0.0678970|            -0.0452432|               0.0392404|              0.0463391|                0.1144270|    0.0581158|    0.1566094|    -0.0519498|         0.0606025|
+| percent\_married        |       -0.1655274|              -0.2410169|           -0.2211551|       -0.1445795|    0.2562195|    -0.2112515|        -0.5837952|       -0.0622367|    0.0391130|            -0.0678970|         1.0000000|            -0.0338378|               0.0041307|              0.3257922|               -0.4896732|    0.1682994|    0.2285568|     0.0012197|        -0.4439122|
+| pct\_bach\_deg18\_24    |        0.2688210|               0.2521097|           -0.2490342|        0.0826459|    0.4625371|     0.2388230|        -0.3368828|        0.0445682|   -0.0029153|            -0.0452432|        -0.0338378|             1.0000000|               0.5840973|              0.4324662|               -0.2570606|   -0.1267955|    0.3925583|    -0.4293453|         0.0418473|
+| pct\_bach\_deg25\_over  |        0.3071750|               0.2886537|           -0.4644337|       -0.0073560|    0.6672572|     0.2905393|        -0.4711736|        0.0918645|   -0.0229929|             0.0392404|         0.0041307|             0.5840973|               1.0000000|              0.5655875|               -0.3061265|   -0.1074720|    0.6117288|    -0.4762872|         0.0237588|
+| pct\_employed16\_over   |        0.1662126|               0.0962653|           -0.3560154|        0.0084221|    0.6385020|     0.1165067|        -0.6885556|        0.0697429|   -0.0374468|             0.0463391|         0.3257922|             0.4324662|               0.5655875|              1.0000000|               -0.6148784|    0.0885339|    0.5824115|    -0.5967376|        -0.2040602|
+| pct\_unemployed16\_over |        0.0545340|               0.1326806|            0.3281160|        0.0935346|   -0.3440161|     0.1026772|         0.5694729|       -0.0214334|    0.0180069|             0.1144270|        -0.4896732|            -0.2570606|              -0.3061265|             -0.6148784|                1.0000000|   -0.1051723|   -0.2965504|     0.2745192|         0.3353566|
+| birth\_rate             |       -0.0411180|              -0.0831509|           -0.0868656|       -0.1202647|   -0.0192905|    -0.0653789|        -0.0269168|        0.0134288|   -0.0030421|             0.0581158|         0.1682994|            -0.1267955|              -0.1074720|              0.0885339|               -0.1051723|    1.0000000|   -0.0158434|     0.1026472|        -0.0943566|
+| median\_inc             |        0.2282581|               0.2021459|           -0.3286698|        0.0165010|    0.9153934|     0.2112351|        -0.6882453|        0.0042065|   -0.0175570|             0.1566094|         0.2285568|             0.3925583|               0.6117288|              0.5824115|               -0.2965504|   -0.0158434|    1.0000000|    -0.5431717|        -0.0384391|
+| pct\_no\_cov            |       -0.2181420|              -0.1896046|            0.1558121|       -0.2235092|   -0.5940330|    -0.1863353|         0.4664597|       -0.0815652|    0.0736906|            -0.0519498|         0.0012197|            -0.4293453|              -0.4762872|             -0.5967376|                0.2745192|    0.1026472|   -0.5431717|     1.0000000|         0.0157736|
+| black\_high\_ind        |        0.1171253|               0.1796549|            0.1757894|        0.1261541|   -0.0588084|     0.1560494|         0.2974097|       -0.0113105|   -0.0100323|             0.0606025|        -0.4439122|             0.0418473|               0.0237588|             -0.2040602|                0.3353566|   -0.0943566|   -0.0384391|     0.0157736|         1.0000000|
+
+``` r
+bach = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = pct_bach_deg25_over)) + 
+  geom_point()
+
+inc = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = incidence_rate)) + 
+  geom_point()
+
+income = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = med_income)) + 
+  geom_point()
+
+employ = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = pct_employed16_over)) + 
+  geom_point()
+
+(bach + inc) / (income + employ)
+```
+
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-2-1.png)
+
 stepwise
 --------
 
@@ -176,7 +227,7 @@ cv.out<-cv.glmnet(X[train,],Y[train])
 plot(cv.out)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-7-1.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-8-1.png)
 
 ``` r
 # Fit a Lasso model with all observations with the best lambda
@@ -4507,21 +4558,21 @@ Cook's Distance
 plot(step_model)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-4.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-4.png)
 
 ``` r
 # backward model
 plot(back_model)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-8.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-8.png)
 
 ``` r
 # forward model
 plot(for_model)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-9.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-10.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-11.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-12.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-9.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-10.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-11.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-12.png)
 
 ``` r
 # Observation 282 should be looked at 
@@ -4649,4 +4700,4 @@ summary(for_no_282)
 plot(step_no_282)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-4.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-4.png)

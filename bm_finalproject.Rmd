@@ -16,6 +16,7 @@ library("leaps")
 library(caret)
 library(dplyr)
 library(glmnet)
+library(patchwork)
 ```
 
 ##Read data
@@ -42,6 +43,29 @@ num_df <- cancer_df %>%
   
 ```
 
+## Exploratory Analysis
+
+```{r}
+cor(num_df) %>% knitr::kable()
+
+bach = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = pct_bach_deg25_over)) + 
+  geom_point()
+
+inc = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = incidence_rate)) + 
+  geom_point()
+
+income = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = med_income)) + 
+  geom_point()
+
+employ = num_df %>% 
+  ggplot(aes(x = target_death_rate, y  = pct_employed16_over)) + 
+  geom_point()
+
+(bach + inc) / (income + employ)
+```
 
 
 
