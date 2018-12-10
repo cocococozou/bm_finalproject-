@@ -15,6 +15,7 @@ library(patchwork)
 library("leaps")
 library(caret)
 library(dplyr)
+library(glmnet)
 ```
 
 ##Read data
@@ -40,8 +41,6 @@ num_df <- cancer_df %>%
   na.omit()
   
 ```
-
-
 
 
 
@@ -99,4 +98,101 @@ vif(for_model)
 
 
 https://www.cancer.org/latest-news/facts-and-figures-2018-rate-of-deaths-from-cancer-continues-decline.html
+
+### Lasso Regression
+```{r}
+# Try a grid of values for lambda: from 10^-2 to 10^5
+
+grid <- 10^seq(5,-2, length=100)
+
+Y <- num_df[,3]
+
+X <- 
+  model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + pct_unemployed16_over + birth_rate + black_high_ind + incidence_rate*black_high_ind , data = num_df)
+
+set.seed(1)
+
+train<-sample(1:nrow(X),nrow(X)/2)
+
+test<-(-train)
+
+Y.test<-Y[test]
+
+
+
+lasso1<- glmnet(X[train ,],Y[train], alpha =1, lambda =grid)
+
+# Cross-validation
+set.seed(2)
+cv.out<-cv.glmnet(X[train,],Y[train])
+plot(cv.out)
+# Fit a Lasso model with all observations with the best lambda
+
+best.lambda<-cv.out$lambda.min
+
+lasso2<- glmnet(X[train ,],Y[train], alpha =1, lambda=best.lambda)
+lasso.cv<- cv.glmnet(X[train ,],Y[train], alpha = 1)
+coef(lasso.cv)
+
+
+
+```
+
+## Outliers Using Studentized Residuals 
+```{r}
+stu_res_step = rstandard(step_model)
+outliers_y_step = stu_res_step[abs(stu_res_step) > 2.5]
+outliers_y_step
+
+stu_res_back = rstandard(back_model)
+outliers_y_back = stu_res_back[abs(stu_res_back) > 2.5]
+outliers_y_back
+
+stu_res_for = rstandard(for_model)
+outliers_y_for = stu_res_for[abs(stu_res_for) > 2.5]
+outliers_y_for
+```
+
+## Various Measures of Influence
+```{r}
+influence.measures(step_model)
+summary(step_model)
+```
+
+## Cook's Distance 
+```{r}
+# step model
+plot(step_model)
+
+# backward model
+plot(back_model)
+
+# forward model
+plot(for_model)
+
+# Observation 282 should be looked at 
+```
+
+## Remove Outliers
+```{r}
+# remove observation 282
+num_df_no_282 = cancer_df %>% 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
+  tibble::rowid_to_column() %>% 
+  filter(rowid != 282) %>% 
+  na.omit()
+
+num_df_no_282 = num_df[-c(282),]
+
+step_no_282 = update(step_model, . ~ ., data = num_df_no_282)
+summary(step_no_282)
+
+back_no_282 = update(back_model, . ~ ., data = num_df_no_282)
+summary(back_no_282)
+
+for_no_282 = update(for_model, . ~ ., data = num_df_no_282)
+summary(for_no_282)
+
+plot(step_no_282)
+```
 
