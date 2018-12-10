@@ -80,14 +80,16 @@ step_model <- stepAIC(full_model, direction = "both",
 summary(step_model)
 vif(step_model)
 step_model<- update(step_model,.~.-avg_deaths_per_year)
-step_model<- update(step_model,.~.-pop_est2015)
-step_model<- update(step_model,.~.+black_high_ind*incidence_rate)
-
+step_model_ours<- update(step_model,.~.-pop_est2015)
+step_model_plus<- update(step_model_ours,.~.+black_high_ind*incidence_rate)
+step_model_plus<- update(step_model_plus,.~.+pct_no_cov)
 ```
 
 ```{r}
-summary(step_model)
+summary(step_model_ours)
+summary(step_model_plus)
 vif(step_model)
+vif(step_model_plus)
 ```
 
 ##Backward elimination 
@@ -158,8 +160,7 @@ lasso2<- glmnet(X[train ,],Y[train], alpha =1, lambda=best.lambda)
 lasso.cv<- cv.glmnet(X[train ,],Y[train], alpha = 1)
 coef(lasso.cv)
 
-
-
+summary(lasso2)
 ```
 
 ## Outliers Using Studentized Residuals 
@@ -168,19 +169,7 @@ stu_res_step = rstandard(step_model)
 outliers_y_step = stu_res_step[abs(stu_res_step) > 2.5]
 outliers_y_step
 
-stu_res_back = rstandard(back_model)
-outliers_y_back = stu_res_back[abs(stu_res_back) > 2.5]
-outliers_y_back
-
-stu_res_for = rstandard(for_model)
-outliers_y_for = stu_res_for[abs(stu_res_for) > 2.5]
-outliers_y_for
-```
-
-## Various Measures of Influence
-```{r}
-influence.measures(step_model)
-summary(step_model)
+# 282, 1221, 1366
 ```
 
 ## Cook's Distance 
@@ -191,22 +180,30 @@ plot(step_model)
 # backward model
 plot(back_model)
 
-# forward model
-plot(for_model)
 
-# Observation 282 should be looked at 
+# Observation 282, 1221, 1366 should be looked at 
 ```
+
+## Various Measures of Influence
+```{r}
+influence.measures(step_model)
+summary(step_model)
+
+# 282, 1221, 1336 noted as potentially influential 
+
+plot(num_df$incidence_rate, num_df$target_death_rate)
+```
+
+
 
 ## Remove Outliers
 ```{r}
-# remove observation 282
+# remove observation 282 only
 num_df_no_282 = cancer_df %>% 
   dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
   tibble::rowid_to_column() %>% 
   filter(rowid != 282) %>% 
   na.omit()
-
-num_df_no_282 = num_df[-c(282),]
 
 step_no_282 = update(step_model, . ~ ., data = num_df_no_282)
 summary(step_no_282)
@@ -214,9 +211,17 @@ summary(step_no_282)
 back_no_282 = update(back_model, . ~ ., data = num_df_no_282)
 summary(back_no_282)
 
-for_no_282 = update(for_model, . ~ ., data = num_df_no_282)
-summary(for_no_282)
+# remove observations 282, 1221, 1366
+num_df_no_282_1221_1366 = cancer_df %>% 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
+  tibble::rowid_to_column() %>% 
+  filter(rowid != 282 & rowid != 1221 & rowid != 1366) %>% 
+  na.omit()
 
-plot(step_no_282)
+step_no282_1221_1366 = update(step_model, . ~ ., data = num_df_no_282_1221_1366)
+summary(step_no282_1221_1366)
+
+back_no282_1221_1366 = update(back_model, . ~ ., data = num_df_no_282_1221_1366)
+summary(back_no282_1221_1366)
 ```
 
