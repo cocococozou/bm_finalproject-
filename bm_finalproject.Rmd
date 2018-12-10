@@ -56,14 +56,16 @@ step_model <- stepAIC(full_model, direction = "both",
 summary(step_model)
 vif(step_model)
 step_model<- update(step_model,.~.-avg_deaths_per_year)
-step_model<- update(step_model,.~.-pop_est2015)
-step_model<- update(step_model,.~.+black_high_ind*incidence_rate)
-
+step_model_ours<- update(step_model,.~.-pop_est2015)
+step_model_plus<- update(step_model_ours,.~.+black_high_ind*incidence_rate)
+step_model_plus<- update(step_model_plus,.~.+pct_no_cov)
 ```
 
 ```{r}
-summary(step_model)
+summary(step_model_ours)
+summary(step_model_plus)
 vif(step_model)
+vif(step_model_plus)
 ```
 
 ##Backward elimination 
