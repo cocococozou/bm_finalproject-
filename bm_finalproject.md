@@ -4532,6 +4532,12 @@ Remove Outliers
 
 ``` r
 # remove observation 282
+num_df_no_282 = cancer_df %>% 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
+  tibble::rowid_to_column() %>% 
+  filter(rowid != 282) %>% 
+  na.omit()
+
 num_df_no_282 = num_df[-c(282),]
 
 step_no_282 = update(step_model, . ~ ., data = num_df_no_282)
