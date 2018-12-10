@@ -19,40 +19,123 @@ library(dplyr)
 
 ##Read data
 
-```{r}
+```{r include = FALSE}
  cancer_df <- read.csv(file = "./data/Cancer_Registry.csv") %>% 
    janitor::clean_names() %>% 
-   na.omit() %>% 
    separate(geography, into = c("county", "state"),sep = ",") %>% 
    separate(binned_inc, into = c("binned_inc_low","binned_inc_high"), sep = ",") %>% 
    mutate(binned_inc_low = str_replace(binned_inc_low,"[(]",""),
           binned_inc_high = str_replace(binned_inc_high,"[]]",""),
           binned_inc_low = as.numeric(gsub(",","",binned_inc_low,fixed=TRUE)),
-          binned_inc_high = as.numeric(gsub(",","",binned_inc_high,fixed=TRUE)))
+          binned_inc_high = as.numeric(gsub(",","",binned_inc_high,fixed=TRUE)),
+          median_inc = (binned_inc_high+binned_inc_low)/2,
+          pct_no_cov = 100 - pct_public_coverage_alone - pct_private_coverage_alone,
+          black_high_ind = case_when(pct_black > 9 ~ "1", TRUE ~ "0"),
+          black_high_ind = as.numeric(black_high_ind)) %>% 
+  dplyr::select(-binned_inc_high, -binned_inc_low, -contains("coverage"),-pct_no_hs18_24, -pct_hs18_24, -pct_some_col18_24,-pct_hs25_over,-pct_married_households)
 
 
 num_df <- cancer_df %>% 
-  dplyr::select(-county, -state, -median_age_male, -median_age_female) %>% 
-  dplyr::select(-contains("pct")) 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
+  na.omit()
   
 ```
 
-```{r}
-round(cor(num_df),3) %>% 
-  knitr::kable(digits = 2)
-```
+
+
 
 
 
 ##stepwise 
 
-```{r}
+```{r results=FALSE}
 full_model = lm(target_death_rate ~ ., data = num_df)
 summary(full_model)
 
 step_model <- stepAIC(full_model, direction = "both", 
                       trace = FALSE)
 summary(step_model)
+vif(step_model)
+step_model<- update(step_model,.~.-avg_deaths_per_year)
+step_model<- update(step_model,.~.-pop_est2015)
+step_model<- update(step_model,.~.+black_high_ind*incidence_rate)
+
 ```
 
+```{r}
+summary(step_model)
+vif(step_model)
+```
+
+##Backward elimination 
+```{r results = FALSE}
+
+back_model <- step(full_model, direction = "backward", trace=FALSE ) 
+summary(back_model)
+vif(back_model)
+
+```
+
+backward elimination suggest the same with stepwise
+
+
+##Forward elimination
+
+```{r results = FALSE}
+null<- lm(target_death_rate ~ 1, data = num_df)
+for_model <- step(null, scope=list(lower=null, upper=full_model), direction="forward")
+summary(for_model)
+vif(for_model)
+for_model<- update(for_model,.~.-avg_deaths_per_year)
+for_model<- update(for_model,.~.-pop_est2015)
+for_model<- update(for_model,.~.+black_high_ind*incidence_rate)
+
+```
+
+```{r}
+summary(for_model)
+vif(for_model)
+```
+
+
+https://www.cancer.org/latest-news/facts-and-figures-2018-rate-of-deaths-from-cancer-continues-decline.html
+
+### Lasso Regression
+```{r}
+# Try a grid of values for lambda: from 10^-2 to 10^5
+
+grid <- 10^seq(5,-2, length=100)
+
+Y <- num_df[,3]
+
+X <- 
+  model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + pct_unemployed16_over + birth_rate + black_high_ind + incidence_rate*black_high_ind , data = num_df)
+
+set.seed(1)
+
+train<-sample(1:nrow(X),nrow(X)/2)
+
+test<-(-train)
+
+Y.test<-Y[test]
+
+
+
+lasso1<- glmnet(X[train ,],Y[train], alpha =1, lambda =grid)
+
+# Cross-validation
+set.seed(2)
+cv.out<-cv.glmnet(X[train,],Y[train])
+plot(cv.out)
+# Fit a Lasso model with all observations with the best lambda
+
+best.lambda<-cv.out$lambda.min
+
+lasso2<- glmnet(X[train ,],Y[train], alpha =1, lambda=best.lambda)
+lasso.cv<- cv.glmnet(X[train ,],Y[train], alpha = 1)
+coef(lasso.cv)
+
+
+
+```
 
