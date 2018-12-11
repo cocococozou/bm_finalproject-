@@ -316,29 +316,126 @@ summary(lasso2)
     ## call       5     -none-    call   
     ## nobs       1     -none-    numeric
 
+Leverages
+---------
+
+``` r
+lev_step = hat(model.matrix(step_model_ours))
+lev_step_plus = hat(model.matrix(step_model_plus))
+
+# plot leverages
+plot(lev_step)
+```
+
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-1.png)
+
+``` r
+plot(lev_step_plus)
+```
+
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-2.png)
+
+``` r
+# show observation with high leverage
+num_df[lev_step > 0.30,] #observation 1000
+```
+
+    ##      avg_ann_count avg_deaths_per_year target_death_rate incidence_rate
+    ## 1000         38150               14010             148.4          405.5
+    ##      med_income pop_est2015 poverty_percent study_per_cap median_age
+    ## 1000      55686    10170292            18.7      255.9415       35.6
+    ##      avg_household_size percent_married pct_bach_deg18_24
+    ## 1000               3.02            42.4               9.9
+    ##      pct_bach_deg25_over pct_employed16_over pct_unemployed16_over
+    ## 1000                19.8                  58                    10
+    ##      birth_rate median_inc pct_no_cov black_high_ind
+    ## 1000   4.705281   58020.05       29.6              0
+
+``` r
+num_df[lev_step_plus > 0.20,] #observation 282 and 1000
+```
+
+    ##      avg_ann_count avg_deaths_per_year target_death_rate incidence_rate
+    ## 282            135                  23             162.1         1014.2
+    ## 1000         38150               14010             148.4          405.5
+    ##      med_income pop_est2015 poverty_percent study_per_cap median_age
+    ## 282       46954       15052            20.1        0.0000       24.6
+    ## 1000      55686    10170292            18.7      255.9415       35.6
+    ##      avg_household_size percent_married pct_bach_deg18_24
+    ## 282                2.37            26.2              10.2
+    ## 1000               3.02            42.4               9.9
+    ##      pct_bach_deg25_over pct_employed16_over pct_unemployed16_over
+    ## 282                 27.1                44.5                   8.5
+    ## 1000                19.8                58.0                  10.0
+    ##      birth_rate median_inc pct_no_cov black_high_ind
+    ## 282    2.181467   46611.30       23.5              1
+    ## 1000   4.705281   58020.05       29.6              0
+
 Outliers Using Studentized Residuals
 ------------------------------------
 
 ``` r
-stu_res_step = rstandard(step_model)
+stu_res_step = rstandard(step_model_ours)
 outliers_y_step = stu_res_step[abs(stu_res_step) > 2.5]
 outliers_y_step
 ```
 
     ##       116       119       122       124       264       282       466 
-    ##  4.201182 -3.245450  3.199951 -3.109051 -2.586700 -5.708013  2.619744 
+    ##  4.062693 -3.343737  3.067104 -3.212129 -2.579202 -5.662949  2.647662 
     ##       469       476       514       522       597       621       627 
-    ##  2.666513 -2.598101 -2.796558  3.241169 -2.667841 -2.705309  3.691749 
+    ##  2.681255 -2.583350 -2.808705  3.228504 -2.661680 -2.674755  3.714138 
     ##       650       666       775       783       803       921      1174 
-    ## -3.355427  2.703718  3.231077 -3.220895 -2.679156 -3.205362  2.525425 
+    ## -3.341952  2.725539  3.232067 -3.216149 -2.647519 -3.196297  2.549945 
     ##      1217      1221      1304      1331      1345      1366      1445 
-    ##  2.824479  7.018962 -2.534414 -2.723425 -2.720272  6.214609 -2.727926 
+    ##  2.825759  7.019098 -2.635697 -2.825076 -2.820399  6.082577 -2.743788 
     ##      1497      1942      2066      2318      2328      2353      2427 
-    ##  4.404072 -3.491506 -2.709135 -2.676790 -2.820549 -2.752008 -2.513060 
+    ##  4.414372 -3.509839 -2.721258 -2.663586 -2.815765 -2.735108 -2.509145 
     ##      2440      2590      2600      2637      2646      2659      2714 
-    ## -2.790105  2.844144  3.576842  3.064566 -4.583253 -4.260000  3.520411 
+    ## -2.802543  2.866275  3.587372  3.073324 -4.571244 -4.253022  3.510342 
     ##      2726      2727      3036 
-    ##  3.925248  3.433304  2.853765
+    ##  3.927474  3.457835  2.731785
+
+``` r
+stu_res_plus = rstandard(step_model_plus)
+outliers_y_plus = stu_res_plus[abs(stu_res_plus) > 2.5]
+outliers_y_plus
+```
+
+    ##       116       119       122       124       189       264       282 
+    ##  4.138483 -3.342005  3.092470 -3.210083 -2.542585 -2.715820 -5.023392 
+    ##       466       469       476       514       522       597       621 
+    ##  2.594243  2.726490 -2.541161 -2.942100  3.056187 -2.650811 -2.700448 
+    ##       627       650       666       775       783       803       921 
+    ##  3.786666 -3.297155  2.745194  3.111158 -3.123388 -2.693816 -3.125507 
+    ##      1174      1217      1221      1290      1304      1331      1345 
+    ##  2.541108  2.933401  7.002995 -2.720343 -2.642981 -2.858036 -2.827390 
+    ##      1366      1445      1497      1942      1962      2066      2318 
+    ##  6.105178 -2.912499  4.425304 -3.349023  2.511229 -2.683825 -2.600052 
+    ##      2328      2353      2427      2440      2590      2600      2637 
+    ## -2.748356 -2.728276 -2.504301 -3.061635  2.812468  3.504731  3.087193 
+    ##      2646      2659      2714      2726      2727      3036 
+    ## -4.611051 -4.211316  3.690226  3.901123  3.442037  2.759001
+
+``` r
+stu_res_back = rstandard(back_model)
+outliers_y_back = stu_res_back[abs(stu_res_back) > 2.5]
+outliers_y_back
+```
+
+    ##       116       119       122       124       264       282       466 
+    ##  4.429086 -3.087604  3.409572 -2.969809 -2.504219 -5.536620  2.629991 
+    ##       469       476       514       522       597       621       627 
+    ##  2.649356 -2.642270 -2.759734  3.241725 -2.577617 -2.715107  3.644194 
+    ##       650       666       775       783       803       921      1174 
+    ## -3.362466  2.678954  3.190467 -3.259077 -2.695568 -3.202735  2.551606 
+    ##      1217      1221      1331      1345      1366      1445      1497 
+    ##  2.796832  6.965050 -2.612628 -2.606354  6.356507 -2.673548  4.388556 
+    ##      1942      2066      2318      2328      2353      2440      2590 
+    ## -3.532645 -2.655377 -2.668766 -2.834886 -2.771928 -2.769920  2.869076 
+    ##      2600      2637      2646      2659      2714      2726      2727 
+    ##  3.607012  3.055383 -4.563974 -4.250213  3.535576  4.008203  3.491002 
+    ##      3034      3036 
+    ##  2.568259  2.986786
 
 ``` r
 # 282, 1221, 1366
@@ -348,18 +445,18 @@ Cook's Distance
 ---------------
 
 ``` r
-# step model
-plot(step_model)
+# step model ours
+plot(step_model_ours)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-4.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-4.png)
 
 ``` r
-# backward model
-plot(back_model)
+# step model plus
+plot(step_model_plus)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-8.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-8.png)
 
 ``` r
 # Observation 282, 1221, 1366 should be looked at 
@@ -4596,35 +4693,12 @@ summary(step_model)
     ## F-statistic: 165.6 on 9 and 2082 DF,  p-value: < 2.2e-16
 
 ``` r
-<<<<<<< HEAD
-# step model
-plot(step_model)
-```
-
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-4.png)
-=======
 # 282, 1221, 1336 noted as potentially influential 
->>>>>>> ee821cb322fb34f13f38a7d40d559d999c4a4eae
 
 plot(num_df$incidence_rate, num_df$target_death_rate)
 ```
 
-<<<<<<< HEAD
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-8.png)
-
-``` r
-# forward model
-plot(for_model)
-```
-
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-9.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-10.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-11.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-12.png)
-
-``` r
-# Observation 282 should be looked at 
-```
-=======
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-10-1.png)
->>>>>>> ee821cb322fb34f13f38a7d40d559d999c4a4eae
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-1.png)
 
 Remove Outliers
 ---------------
@@ -4637,62 +4711,73 @@ num_df_no_282 = cancer_df %>%
   filter(rowid != 282) %>% 
   na.omit()
 
-step_no_282 = update(step_model, . ~ ., data = num_df_no_282)
+step_no_282 = update(step_model_ours, . ~ ., data = num_df_no_282)
 summary(step_no_282)
 ```
 
     ## 
     ## Call:
     ## lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + 
-    ##     pop_est2015 + poverty_percent + percent_married + pct_bach_deg25_over + 
+    ##     poverty_percent + percent_married + pct_bach_deg25_over + 
     ##     pct_unemployed16_over + birth_rate + black_high_ind, data = num_df_no_282)
     ## 
     ## Residuals:
-<<<<<<< HEAD
     ##     Min      1Q  Median      3Q     Max 
-    ## -90.289 -11.346  -0.421  10.730 136.405 
-    ## 
-    ## Coefficients:
-    ##                                 Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                    1.216e+02  9.440e+00  12.882  < 2e-16 ***
-    ## avg_ann_count                 -1.080e-03  3.049e-04  -3.541 0.000408 ***
-    ## incidence_rate                 1.959e-01  9.847e-03  19.889  < 2e-16 ***
-    ## poverty_percent                3.691e-01  1.351e-01   2.733 0.006326 ** 
-    ## percent_married               -2.606e-01  1.006e-01  -2.591 0.009638 ** 
-    ## pct_bach_deg25_over           -1.878e+00  1.052e-01 -17.850  < 2e-16 ***
-    ## pct_unemployed16_over          6.527e-01  1.837e-01   3.553 0.000390 ***
-    ## birth_rate                    -7.703e-01  2.168e-01  -3.553 0.000389 ***
-    ## black_high_ind                 5.300e+00  1.010e+01   0.524 0.599991    
-    ## incidence_rate:black_high_ind -3.113e-03  2.205e-02  -0.141 0.887747    
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 19.45 on 2081 degrees of freedom
-    ## Multiple R-squared:  0.4252, Adjusted R-squared:  0.4227 
-    ## F-statistic:   171 on 9 and 2081 DF,  p-value: < 2.2e-16
-=======
-    ##      Min       1Q   Median       3Q      Max 
-    ## -107.689  -11.180   -0.397   10.932  137.011 
+    ## -90.239 -11.348  -0.421  10.752 136.414 
     ## 
     ## Coefficients:
     ##                         Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)            1.258e+02  9.252e+00  13.601  < 2e-16 ***
-    ## avg_ann_count         -2.287e-03  7.841e-04  -2.917 0.003574 ** 
-    ## incidence_rate         1.854e-01  8.748e-03  21.195  < 2e-16 ***
-    ## pop_est2015            6.066e-06  3.295e-06   1.841 0.065788 .  
-    ## poverty_percent        3.297e-01  1.362e-01   2.420 0.015596 *  
-    ## percent_married       -2.275e-01  1.012e-01  -2.247 0.024744 *  
-    ## pct_bach_deg25_over   -1.934e+00  1.055e-01 -18.328  < 2e-16 ***
-    ## pct_unemployed16_over  6.647e-01  1.852e-01   3.589 0.000339 ***
-    ## birth_rate            -7.548e-01  2.185e-01  -3.454 0.000564 ***
-    ## black_high_ind         3.880e+00  1.127e+00   3.442 0.000589 ***
+    ## (Intercept)            1.219e+02  9.216e+00  13.227  < 2e-16 ***
+    ## avg_ann_count         -1.080e-03  3.048e-04  -3.542 0.000406 ***
+    ## incidence_rate         1.952e-01  8.857e-03  22.044  < 2e-16 ***
+    ## poverty_percent        3.684e-01  1.349e-01   2.730 0.006377 ** 
+    ## percent_married       -2.604e-01  1.005e-01  -2.590 0.009670 ** 
+    ## pct_bach_deg25_over   -1.879e+00  1.048e-01 -17.930  < 2e-16 ***
+    ## pct_unemployed16_over  6.533e-01  1.836e-01   3.558 0.000382 ***
+    ## birth_rate            -7.712e-01  2.166e-01  -3.560 0.000380 ***
+    ## black_high_ind         3.882e+00  1.117e+00   3.474 0.000523 ***
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 19.58 on 2081 degrees of freedom
-    ## Multiple R-squared:  0.4171, Adjusted R-squared:  0.4146 
-    ## F-statistic: 165.5 on 9 and 2081 DF,  p-value: < 2.2e-16
->>>>>>> a7eeba7d73c0eb72fd0a7df23306ece45af158bd
+    ## Residual standard error: 19.44 on 2082 degrees of freedom
+    ## Multiple R-squared:  0.4252, Adjusted R-squared:  0.423 
+    ## F-statistic: 192.5 on 8 and 2082 DF,  p-value: < 2.2e-16
+
+``` r
+step_no_282_plus = update(step_model_plus, . ~ ., data = num_df_no_282)
+summary(step_no_282_plus)
+```
+
+    ## 
+    ## Call:
+    ## lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + 
+    ##     poverty_percent + percent_married + pct_bach_deg25_over + 
+    ##     pct_unemployed16_over + birth_rate + black_high_ind + pct_no_cov + 
+    ##     incidence_rate:black_high_ind, data = num_df_no_282)
+    ## 
+    ## Residuals:
+    ##     Min      1Q  Median      3Q     Max 
+    ## -89.936 -11.344  -0.462  10.635 136.238 
+    ## 
+    ## Coefficients:
+    ##                                 Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)                    1.228e+02  9.651e+00  12.724  < 2e-16 ***
+    ## avg_ann_count                 -1.092e-03  3.056e-04  -3.572 0.000362 ***
+    ## incidence_rate                 1.946e-01  1.007e-02  19.320  < 2e-16 ***
+    ## poverty_percent                3.994e-01  1.443e-01   2.767 0.005702 ** 
+    ## percent_married               -2.451e-01  1.039e-01  -2.359 0.018408 *  
+    ## pct_bach_deg25_over           -1.891e+00  1.075e-01 -17.594  < 2e-16 ***
+    ## pct_unemployed16_over          6.648e-01  1.849e-01   3.596 0.000331 ***
+    ## birth_rate                    -7.651e-01  2.170e-01  -3.526 0.000432 ***
+    ## black_high_ind                 5.137e+00  1.011e+01   0.508 0.611405    
+    ## pct_no_cov                    -5.807e-02  9.760e-02  -0.595 0.551899    
+    ## incidence_rate:black_high_ind -2.745e-03  2.206e-02  -0.124 0.900998    
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 19.45 on 2080 degrees of freedom
+    ## Multiple R-squared:  0.4253, Adjusted R-squared:  0.4225 
+    ## F-statistic: 153.9 on 10 and 2080 DF,  p-value: < 2.2e-16
 
 ``` r
 back_no_282 = update(back_model, . ~ ., data = num_df_no_282)
@@ -4745,41 +4830,37 @@ summary(step_no282_1221_1366)
     ## 
     ## Call:
     ## lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + 
-    ##     poverty_percent + percent_married + pct_bach_deg25_over + 
-    ##     pct_unemployed16_over + birth_rate + black_high_ind + incidence_rate:black_high_ind, 
-    ##     data = num_df_no_282_1221_1366)
+    ##     pop_est2015 + poverty_percent + percent_married + pct_bach_deg25_over + 
+    ##     pct_unemployed16_over + birth_rate + black_high_ind, data = num_df_no_282_1221_1366)
     ## 
     ## Residuals:
     ##     Min      1Q  Median      3Q     Max 
-    ## -90.092 -11.171  -0.323  10.714  86.437 
+    ## -90.295 -11.188  -0.469  10.891  86.127 
     ## 
     ## Coefficients:
-    ##                                 Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)                    1.239e+02  9.249e+00  13.398  < 2e-16 ***
-    ## avg_ann_count                 -1.083e-03  2.988e-04  -3.624 0.000297 ***
-    ## incidence_rate                 1.947e-01  9.645e-03  20.187  < 2e-16 ***
-    ## poverty_percent                3.272e-01  1.324e-01   2.472 0.013500 *  
-    ## percent_married               -2.786e-01  9.853e-02  -2.828 0.004727 ** 
-    ## pct_bach_deg25_over           -1.918e+00  1.032e-01 -18.582  < 2e-16 ***
-    ## pct_unemployed16_over          6.983e-01  1.800e-01   3.879 0.000108 ***
-    ## birth_rate                    -7.776e-01  2.123e-01  -3.662 0.000256 ***
-    ## black_high_ind                 4.621e+00  9.896e+00   0.467 0.640562    
-    ## incidence_rate:black_high_ind -2.153e-03  2.160e-02  -0.100 0.920585    
+    ##                         Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)            1.233e+02  9.025e+00  13.658  < 2e-16 ***
+    ## avg_ann_count         -2.766e-03  7.635e-04  -3.623 0.000299 ***
+    ## incidence_rate         1.972e-01  8.750e-03  22.536  < 2e-16 ***
+    ## pop_est2015            7.681e-06  3.207e-06   2.395 0.016707 *  
+    ## poverty_percent        3.056e-01  1.324e-01   2.309 0.021044 *  
+    ## percent_married       -2.711e-01  9.843e-02  -2.754 0.005937 ** 
+    ## pct_bach_deg25_over   -1.935e+00  1.029e-01 -18.800  < 2e-16 ***
+    ## pct_unemployed16_over  6.748e-01  1.800e-01   3.749 0.000182 ***
+    ## birth_rate            -7.491e-01  2.123e-01  -3.529 0.000427 ***
+    ## black_high_ind         3.486e+00  1.096e+00   3.181 0.001492 ** 
     ## ---
     ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
     ## 
-    ## Residual standard error: 19.05 on 2079 degrees of freedom
-    ## Multiple R-squared:  0.438,  Adjusted R-squared:  0.4356 
-    ## F-statistic:   180 on 9 and 2079 DF,  p-value: < 2.2e-16
+    ## Residual standard error: 19.02 on 2079 degrees of freedom
+    ## Multiple R-squared:  0.4396, Adjusted R-squared:  0.4371 
+    ## F-statistic: 181.2 on 9 and 2079 DF,  p-value: < 2.2e-16
 
 ``` r
 back_no282_1221_1366 = update(back_model, . ~ ., data = num_df_no_282_1221_1366)
 summary(back_no282_1221_1366)
 ```
 
-<<<<<<< HEAD
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-4.png)
-=======
     ## 
     ## Call:
     ## lm(formula = target_death_rate ~ avg_ann_count + avg_deaths_per_year + 
@@ -4810,4 +4891,3 @@ summary(back_no282_1221_1366)
     ## Residual standard error: 18.96 on 2078 degrees of freedom
     ## Multiple R-squared:  0.4435, Adjusted R-squared:  0.4408 
     ## F-statistic: 165.6 on 10 and 2078 DF,  p-value: < 2.2e-16
->>>>>>> ee821cb322fb34f13f38a7d40d559d999c4a4eae
