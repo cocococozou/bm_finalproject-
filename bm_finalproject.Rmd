@@ -9,16 +9,16 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(multcomp)
-library(faraway) 
-library(ggplot2)
+library(faraway)
+library(dplyr)
 library(patchwork)
 library("leaps")
 library(caret)
-library(dplyr)
 library(glmnet)
 library(patchwork)
 library(broom)
 library(olsrr)
+library(modelr)
 ```
 
 ##Read data
@@ -104,8 +104,6 @@ ours = glance(step_model_ours) %>%
   mutate(cp = ols_mallows_cp(step_model_ours, full_model)) %>% 
   rename(RSE = sigma)
 
-ours %>%  
-  knitr::kable(digits = 2)
 
 plus = glance(step_model_plus) %>% 
   as.data.frame() %>% 
@@ -113,8 +111,6 @@ plus = glance(step_model_plus) %>%
   mutate(cp = ols_mallows_cp(step_model_plus, full_model)) %>% 
   rename(RSE = sigma)
   
-plus %>%  
-  knitr::kable(digits = 2)
 ```
 
 We decide to use plus as the final model
@@ -152,6 +148,56 @@ vif(for_model)
 
 
 https://www.cancer.org/latest-news/facts-and-figures-2018-rate-of-deaths-from-cancer-continues-decline.html
+
+### Cross validation
+```{r}
+
+
+cv_df <-  crossv_mc(num_df, n=100, test = .2)
+
+step_lm <- lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + 
+pct_unemployed16_over + birth_rate + black_high_ind, data = num_df)
+
+plus_lm <- lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + 
+ poverty_percent + percent_married + pct_bach_deg25_over + 
+pct_unemployed16_over + birth_rate + black_high_ind + pct_no_cov + 
+incidence_rate:black_high_ind, data = num_df)
+
+
+
+cv_result <- cv_df %>% 
+  mutate(train = map(train, as_tibble),
+         test = map(test, as_tibble)) %>% 
+  mutate(step_mod   = map(train, ~step_lm),
+         plus_mod = map(train, ~plus_lm)) %>% 
+  mutate(rmse_step    = map2_dbl(step_mod, test, ~rmse(model = .x, data = .y)),
+         rmse_plus = map2_dbl(plus_mod, test, ~rmse(model = .x, data = .y)))
+
+cv_result %>% 
+  dplyr::select(rmse_step,rmse_plus) %>% 
+  gather(key = model, value = rmse) %>% 
+  mutate(model = str_replace(model, "rmse_", ""),
+         model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+
+rmse_result <- cv_result %>% 
+  dplyr::select(rmse_step,rmse_plus) %>%
+  lapply(mean) %>% 
+  as.data.frame(digit=3) %>%
+  gather(key=model, value=rmse, rmse_step:rmse_plus)
+  
+
+
+```
+
+### Criterion Method Summary
+```{r}
+rbind(ours, plus) %>% 
+  cbind(.,rmse_result) %>% 
+  dplyr::select(model, everything()) %>% 
+  knitr::kable(digits = 2)
+```
+
 
 ### Lasso Regression
 ```{r}
