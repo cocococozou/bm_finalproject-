@@ -199,7 +199,7 @@ rbind(ours, plus) %>%
 ```
 
 
-### Lasso Regression
+### Ridge Regression
 ```{r}
 # Try a grid of values for lambda: from 10^-2 to 10^5
 
@@ -207,34 +207,47 @@ grid <- 10^seq(5,-2, length=100)
 
 Y <- num_df[,3]
 
-X <- 
-  model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + pct_unemployed16_over + birth_rate + black_high_ind + incidence_rate*black_high_ind , data = num_df)
+X <- model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + 
+ poverty_percent + percent_married + pct_bach_deg25_over + 
+pct_unemployed16_over + birth_rate + black_high_ind + pct_no_cov + 
+incidence_rate:black_high_ind, data = num_df)
 
 set.seed(1)
 
-train<-sample(1:nrow(X),nrow(X)/2)
+test<-sample(1:nrow(X),nrow(X)/5)
 
-test<-(-train)
+train<-(-test)
 
 Y.test<-Y[test]
 
 
-
-lasso1<- glmnet(X[train ,],Y[train], alpha =1, lambda =grid)
-
 # Cross-validation
 set.seed(2)
 cv.out<-cv.glmnet(X[train,],Y[train])
-plot(cv.out)
-# Fit a Lasso model with all observations with the best lambda
 
-best.lambda<-cv.out$lambda.min
+# Fit a Ridge model with all observations with the best lambda
 
-lasso2<- glmnet(X[train ,],Y[train], alpha =1, lambda=best.lambda)
-lasso.cv<- cv.glmnet(X[train ,],Y[train], alpha = 1)
-coef(lasso.cv)
+best.lambda<- cv.out$lambda.min
 
-summary(lasso2)
+ridge2<- glmnet(X[train ,],Y[train], alpha =0, lambda=best.lambda)
+ridge2.cv<- cv.glmnet(X[train ,],Y[train], alpha = 0)
+
+## Generating the coef
+coef_ridge <- broom::tidy(coef(ridge2.cv))
+coef_lm <- broom::tidy(coef(step_model_plus))
+coef <- cbind(coef_ridge[,-2],coef_lm[,-1])
+colnames(coef) <- c('coef','ridge','lm')
+knitr::kable(coef, digits = 3)
+
+ridge.pred <- predict(ridge2.cv,s=best.lambda,newx=X[test,])
+
+rmse_ridge <- sqrt(mean((ridge.pred-Y.test)^2))
+
+cv_result %>% 
+  dplyr::select(rmse_step,rmse_plus) %>%
+  lapply(mean) %>% 
+  as.data.frame(digit=3) %>% 
+  mutate(rmse_ridge = rmse_ridge)
 ```
 
 ## Outliers Using Studentized Residuals 
