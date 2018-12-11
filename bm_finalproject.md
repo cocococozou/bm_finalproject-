@@ -167,28 +167,39 @@ vif(step_model_plus)
     ##                    pct_no_cov incidence_rate:black_high_ind 
     ##                      1.673038                     88.098191
 
-### Cp*A**I**C*adjustedr2
+### Cp&AIC&adjustedr2
 
 ``` r
-X_ours <- 
-  model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + pct_unemployed16_over + birth_rate , data = num_df)
+ours = glance(step_model_ours) %>% 
+  as.data.frame() %>% 
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value) %>% 
+  mutate(cp = ols_mallows_cp(step_model_ours, full_model)) %>% 
+  rename(RSE = sigma)
 
-Y_ours <- num_df[,3]
-
-x = glance(step_model_ours) 
-x %>%  
+ours %>%  
   knitr::kable(digits = 2)
 ```
 
-|       |  r.squared|  adj.r.squared|  sigma|  statistic|  p.value|   df|    logLik|       AIC|       BIC|  deviance|  df.residual|
-|-------|----------:|--------------:|------:|----------:|--------:|----:|---------:|---------:|---------:|---------:|------------:|
-| value |       0.42|           0.41|  19.59|      185.7|        0|    9|  -9187.58|  18395.16|  18451.62|  799337.2|         2083|
+|  adj.r.squared|    RSE|       AIC|       BIC|  p.value|     cp|
+|--------------:|------:|---------:|---------:|--------:|------:|
+|           0.41|  19.59|  18395.16|  18451.62|        0|  20.82|
 
 ``` r
-AIC(step_model_plus)
+plus = glance(step_model_plus) %>% 
+  as.data.frame() %>% 
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value) %>% 
+  mutate(cp = ols_mallows_cp(step_model_plus, full_model)) %>% 
+  rename(RSE = sigma)
+  
+plus %>%  
+  knitr::kable(digits = 2)
 ```
 
-    ## [1] 18391.85
+|  adj.r.squared|    RSE|       AIC|      BIC|  p.value|     cp|
+|--------------:|------:|---------:|--------:|--------:|------:|
+|           0.42|  19.56|  18391.85|  18459.6|        0|  17.52|
+
+We decide to use plus as the final model
 
 Backward elimination
 --------------------
