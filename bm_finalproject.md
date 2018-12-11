@@ -167,6 +167,40 @@ vif(step_model_plus)
     ##                    pct_no_cov incidence_rate:black_high_ind 
     ##                      1.673038                     88.098191
 
+### Cp&AIC&adjustedr2
+
+``` r
+ours = glance(step_model_ours) %>% 
+  as.data.frame() %>% 
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value) %>% 
+  mutate(cp = ols_mallows_cp(step_model_ours, full_model)) %>% 
+  rename(RSE = sigma)
+
+ours %>%  
+  knitr::kable(digits = 2)
+```
+
+|  adj.r.squared|    RSE|       AIC|       BIC|  p.value|     cp|
+|--------------:|------:|---------:|---------:|--------:|------:|
+|           0.41|  19.59|  18395.16|  18451.62|        0|  20.82|
+
+``` r
+plus = glance(step_model_plus) %>% 
+  as.data.frame() %>% 
+  dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value) %>% 
+  mutate(cp = ols_mallows_cp(step_model_plus, full_model)) %>% 
+  rename(RSE = sigma)
+  
+plus %>%  
+  knitr::kable(digits = 2)
+```
+
+|  adj.r.squared|    RSE|       AIC|      BIC|  p.value|     cp|
+|--------------:|------:|---------:|--------:|--------:|------:|
+|           0.42|  19.56|  18391.85|  18459.6|        0|  17.52|
+
+We decide to use plus as the final model
+
 Backward elimination
 --------------------
 
@@ -272,7 +306,7 @@ cv.out<-cv.glmnet(X[train,],Y[train])
 plot(cv.out)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-8-1.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-1.png)
 
 ``` r
 # Fit a Lasso model with all observations with the best lambda
@@ -4722,6 +4756,7 @@ summary(step_no_282)
     ##     pct_unemployed16_over + birth_rate + black_high_ind, data = num_df_no_282)
     ## 
     ## Residuals:
+<<<<<<< HEAD
     ##     Min      1Q  Median      3Q     Max 
     ## -90.239 -11.348  -0.421  10.752 136.414 
     ## 
@@ -4778,6 +4813,29 @@ summary(step_no_282_plus)
     ## Residual standard error: 19.45 on 2080 degrees of freedom
     ## Multiple R-squared:  0.4253, Adjusted R-squared:  0.4225 
     ## F-statistic: 153.9 on 10 and 2080 DF,  p-value: < 2.2e-16
+=======
+    ##    Min     1Q Median     3Q    Max 
+    ## -90.44 -11.37  -0.45  10.68 136.32 
+    ## 
+    ## Coefficients:
+    ##                         Estimate Std. Error t value Pr(>|t|)    
+    ## (Intercept)            1.212e+02  9.216e+00  13.148  < 2e-16 ***
+    ## avg_ann_count         -2.488e-03  7.781e-04  -3.198 0.001406 ** 
+    ## incidence_rate         1.977e-01  8.939e-03  22.118  < 2e-16 ***
+    ## pop_est2015            6.432e-06  3.270e-06   1.967 0.049283 *  
+    ## poverty_percent        3.513e-01  1.351e-01   2.599 0.009403 ** 
+    ## percent_married       -2.541e-01  1.005e-01  -2.528 0.011557 *  
+    ## pct_bach_deg25_over   -1.893e+00  1.050e-01 -18.033  < 2e-16 ***
+    ## pct_unemployed16_over  6.325e-01  1.838e-01   3.442 0.000590 ***
+    ## birth_rate            -7.465e-01  2.169e-01  -3.443 0.000588 ***
+    ## black_high_ind         3.750e+00  1.119e+00   3.353 0.000814 ***
+    ## ---
+    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+    ## 
+    ## Residual standard error: 19.43 on 2081 degrees of freedom
+    ## Multiple R-squared:  0.4263, Adjusted R-squared:  0.4238 
+    ## F-statistic: 171.8 on 9 and 2081 DF,  p-value: < 2.2e-16
+>>>>>>> ea8b513bc69c8a5b148c8586d360b8bd86753e36
 
 ``` r
 back_no_282 = update(back_model, . ~ ., data = num_df_no_282)
