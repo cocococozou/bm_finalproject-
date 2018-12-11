@@ -17,6 +17,7 @@ library(caret)
 library(dplyr)
 library(glmnet)
 library(patchwork)
+library(broom)
 ```
 
 ##Read data
@@ -91,6 +92,21 @@ summary(step_model_plus)
 vif(step_model)
 vif(step_model_plus)
 ```
+
+###Cp$AIC$adjustedr2
+
+```{r}
+X_ours <- 
+  model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + pct_unemployed16_over + birth_rate , data = num_df)
+
+Y_ours <- num_df[,3]
+
+x = glance(step_model_ours) 
+x %>%  
+  knitr::kable(digits = 2)
+AIC(step_model_plus)
+```
+
 
 ##Backward elimination 
 ```{r results = FALSE}
