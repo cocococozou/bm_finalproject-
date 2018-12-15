@@ -51,19 +51,19 @@ num_df <- cancer_df %>%
 cor(num_df) %>% knitr::kable()
 
 bach = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = pct_bach_deg25_over)) + 
+  ggplot(aes(x  = pct_bach_deg25_over, y = target_death_rate)) + 
   geom_point()
 
 inc = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = incidence_rate)) + 
+  ggplot(aes(x  = incidence_rate, y = target_death_rate)) + 
   geom_point()
 
 income = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = med_income)) + 
+  ggplot(aes(x  = med_income, y = target_death_rate)) + 
   geom_point()
 
 employ = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = pct_employed16_over)) + 
+  ggplot(aes(x  = pct_employed16_over, y = target_death_rate)) + 
   geom_point()
 
 (bach + inc) / (income + employ)

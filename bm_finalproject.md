@@ -37,19 +37,19 @@ cor(num_df) %>% knitr::kable()
 
 ``` r
 bach = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = pct_bach_deg25_over)) + 
+  ggplot(aes(x  = pct_bach_deg25_over, y = target_death_rate)) + 
   geom_point()
 
 inc = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = incidence_rate)) + 
+  ggplot(aes(x  = incidence_rate, y = target_death_rate)) + 
   geom_point()
 
 income = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = med_income)) + 
+  ggplot(aes(x  = med_income, y = target_death_rate)) + 
   geom_point()
 
 employ = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = pct_employed16_over)) + 
+  ggplot(aes(x  = pct_employed16_over, y = target_death_rate)) + 
   geom_point()
 
 (bach + inc) / (income + employ)
@@ -176,28 +176,13 @@ ours = glance(step_model_ours) %>%
   mutate(cp = ols_mallows_cp(step_model_ours, full_model)) %>% 
   rename(RSE = sigma)
 
-ours %>%  
-  knitr::kable(digits = 2)
-```
 
-|  adj.r.squared|    RSE|       AIC|       BIC|  p.value|     cp|
-|--------------:|------:|---------:|---------:|--------:|------:|
-|           0.41|  19.59|  18395.16|  18451.62|        0|  20.82|
-
-``` r
 plus = glance(step_model_plus) %>% 
   as.data.frame() %>% 
   dplyr::select(adj.r.squared, sigma, AIC, BIC, p.value) %>% 
   mutate(cp = ols_mallows_cp(step_model_plus, full_model)) %>% 
   rename(RSE = sigma)
-  
-plus %>%  
-  knitr::kable(digits = 2)
 ```
-
-|  adj.r.squared|    RSE|       AIC|      BIC|  p.value|     cp|
-|--------------:|------:|---------:|--------:|--------:|------:|
-|           0.42|  19.56|  18391.85|  18459.6|        0|  17.52|
 
 We decide to use plus as the final model
 
@@ -276,7 +261,62 @@ vif(for_model)
 
 <https://www.cancer.org/latest-news/facts-and-figures-2018-rate-of-deaths-from-cancer-continues-decline.html>
 
-### Lasso Regression
+### Cross validation
+
+``` r
+cv_df <-  crossv_mc(num_df, n=100, test = .2)
+
+step_lm <- lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + 
+pct_unemployed16_over + birth_rate + black_high_ind, data = num_df)
+
+plus_lm <- lm(formula = target_death_rate ~ avg_ann_count + incidence_rate + 
+ poverty_percent + percent_married + pct_bach_deg25_over + 
+pct_unemployed16_over + birth_rate + black_high_ind + pct_no_cov + 
+incidence_rate:black_high_ind, data = num_df)
+
+
+
+cv_result <- cv_df %>% 
+  mutate(train = map(train, as_tibble),
+         test = map(test, as_tibble)) %>% 
+  mutate(step_mod   = map(train, ~step_lm),
+         plus_mod = map(train, ~plus_lm)) %>% 
+  mutate(rmse_step    = map2_dbl(step_mod, test, ~rmse(model = .x, data = .y)),
+         rmse_plus = map2_dbl(plus_mod, test, ~rmse(model = .x, data = .y)))
+
+cv_result %>% 
+  dplyr::select(rmse_step,rmse_plus) %>% 
+  gather(key = model, value = rmse) %>% 
+  mutate(model = str_replace(model, "rmse_", ""),
+         model = fct_inorder(model)) %>% 
+  ggplot(aes(x = model, y = rmse)) + geom_violin()
+```
+
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-1.png)
+
+``` r
+rmse_result <- cv_result %>% 
+  dplyr::select(rmse_step,rmse_plus) %>%
+  lapply(mean) %>% 
+  as.data.frame(digit=3) %>%
+  gather(key=model, value=rmse, rmse_step:rmse_plus)
+```
+
+### Criterion Method Summary
+
+``` r
+rbind(ours, plus) %>% 
+  cbind(.,rmse_result) %>% 
+  dplyr::select(model, everything()) %>% 
+  knitr::kable(digits = 2)
+```
+
+| model      |  adj.r.squared|    RSE|       AIC|       BIC|  p.value|     cp|   rmse|
+|:-----------|--------------:|------:|---------:|---------:|--------:|------:|------:|
+| rmse\_step |           0.41|  19.59|  18395.16|  18451.62|        0|  20.82|  19.43|
+| rmse\_plus |           0.42|  19.56|  18391.85|  18459.60|        0|  17.52|  19.42|
+
+### Ridge Regression
 
 ``` r
 # Try a grid of values for lambda: from 10^-2 to 10^5
@@ -285,70 +325,82 @@ grid <- 10^seq(5,-2, length=100)
 
 Y <- num_df[,3]
 
-X <- 
-  model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + poverty_percent + percent_married + pct_bach_deg25_over + pct_unemployed16_over + birth_rate + black_high_ind + incidence_rate*black_high_ind , data = num_df)
+X <- model.matrix(target_death_rate ~ avg_ann_count + incidence_rate + 
+ poverty_percent + percent_married + pct_bach_deg25_over + 
+pct_unemployed16_over + birth_rate + black_high_ind + pct_no_cov + 
+incidence_rate:black_high_ind, data = num_df)
 
 set.seed(1)
 
-train<-sample(1:nrow(X),nrow(X)/2)
+test<-sample(1:nrow(X),nrow(X)/5)
 
-test<-(-train)
+train<-(-test)
 
 Y.test<-Y[test]
 
 
-
-lasso1<- glmnet(X[train ,],Y[train], alpha =1, lambda =grid)
-
 # Cross-validation
 set.seed(2)
 cv.out<-cv.glmnet(X[train,],Y[train])
-plot(cv.out)
+
+# Fit a Ridge model with all observations with the best lambda
+
+best.lambda<- cv.out$lambda.min
+
+ridge2<- glmnet(X[train ,],Y[train], alpha =0, lambda=best.lambda)
+ridge2.cv<- cv.glmnet(X[train ,],Y[train], alpha = 0)
+
+## Generating the coef
+coef_ridge <- broom::tidy(coef(ridge2.cv))
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-1.png)
+    ## Warning: 'tidy.dgCMatrix' is deprecated.
+    ## See help("Deprecated")
+
+    ## Warning: 'tidy.dgTMatrix' is deprecated.
+    ## See help("Deprecated")
 
 ``` r
-# Fit a Lasso model with all observations with the best lambda
-
-best.lambda<-cv.out$lambda.min
-
-lasso2<- glmnet(X[train ,],Y[train], alpha =1, lambda=best.lambda)
-lasso.cv<- cv.glmnet(X[train ,],Y[train], alpha = 1)
-coef(lasso.cv)
+coef_lm <- broom::tidy(coef(step_model_plus))
 ```
 
-    ## 11 x 1 sparse Matrix of class "dgCMatrix"
-    ##                                          1
-    ## (Intercept)                   131.18870105
-    ## (Intercept)                     .         
-    ## avg_ann_count                   .         
-    ## incidence_rate                  0.12630869
-    ## poverty_percent                 0.36789827
-    ## percent_married                -0.04694824
-    ## pct_bach_deg25_over            -1.42718268
-    ## pct_unemployed16_over           0.62956329
-    ## birth_rate                      .         
-    ## black_high_ind                  .         
-    ## incidence_rate:black_high_ind   .
+    ## Warning: 'tidy.numeric' is deprecated.
+    ## See help("Deprecated")
 
 ``` r
-summary(lasso2)
+coef <- cbind(coef_ridge[,-2],coef_lm[,-1])
+colnames(coef) <- c('coef','ridge','lm')
+knitr::kable(coef, digits = 3)
 ```
 
-    ##           Length Class     Mode   
-    ## a0         1     -none-    numeric
-    ## beta      10     dgCMatrix S4     
-    ## df         1     -none-    numeric
-    ## dim        2     -none-    numeric
-    ## lambda     1     -none-    numeric
-    ## dev.ratio  1     -none-    numeric
-    ## nulldev    1     -none-    numeric
-    ## npasses    1     -none-    numeric
-    ## jerr       1     -none-    numeric
-    ## offset     1     -none-    logical
-    ## call       5     -none-    call   
-    ## nobs       1     -none-    numeric
+| coef                             |    ridge|       lm|
+|:---------------------------------|--------:|--------:|
+| (Intercept)                      |  132.383|  122.400|
+| avg\_ann\_count                  |   -0.001|   -0.001|
+| incidence\_rate                  |    0.132|    0.194|
+| poverty\_percent                 |    0.498|    0.398|
+| percent\_married                 |   -0.190|   -0.223|
+| pct\_bach\_deg25\_over           |   -1.263|   -1.909|
+| pct\_unemployed16\_over          |    0.743|    0.685|
+| birth\_rate                      |   -0.508|   -0.755|
+| black\_high\_ind                 |    2.177|   27.197|
+| pct\_no\_cov                     |    0.055|   -0.075|
+| incidence\_rate:black\_high\_ind |    0.004|   -0.051|
+
+``` r
+ridge.pred <- predict(ridge2.cv,s=best.lambda,newx=X[test,])
+
+rmse_ridge <- sqrt(mean((ridge.pred-Y.test)^2))
+
+cv_result %>% 
+  dplyr::select(rmse_step,rmse_plus) %>%
+  lapply(mean) %>% 
+  as.data.frame(digit=3) %>% 
+  mutate(rmse_ridge = rmse_ridge)
+```
+
+    ##   rmse_step rmse_plus rmse_ridge
+    ## 1  19.42724  19.41965   19.14778
 
 Leverages
 ---------
@@ -361,13 +413,13 @@ lev_step_plus = hat(model.matrix(step_model_plus))
 plot(lev_step)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-1.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-1.png)
 
 ``` r
 plot(lev_step_plus)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-9-2.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-2.png)
 
 ``` r
 # show observation with high leverage
@@ -483,14 +535,14 @@ Cook's Distance
 plot(step_model_ours)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-4.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-1.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-2.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-3.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-4.png)
 
 ``` r
 # step model plus
 plot(step_model_plus)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-11-8.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-5.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-6.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-7.png)![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-14-8.png)
 
 ``` r
 # Observation 282, 1221, 1366 should be looked at 
@@ -4732,7 +4784,7 @@ summary(step_model)
 plot(num_df$incidence_rate, num_df$target_death_rate)
 ```
 
-![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-12-1.png)
+![](bm_finalproject_files/figure-markdown_github/unnamed-chunk-15-1.png)
 
 Remove Outliers
 ---------------
@@ -4756,7 +4808,6 @@ summary(step_no_282)
     ##     pct_unemployed16_over + birth_rate + black_high_ind, data = num_df_no_282)
     ## 
     ## Residuals:
-<<<<<<< HEAD
     ##     Min      1Q  Median      3Q     Max 
     ## -90.239 -11.348  -0.421  10.752 136.414 
     ## 
@@ -4813,29 +4864,6 @@ summary(step_no_282_plus)
     ## Residual standard error: 19.45 on 2080 degrees of freedom
     ## Multiple R-squared:  0.4253, Adjusted R-squared:  0.4225 
     ## F-statistic: 153.9 on 10 and 2080 DF,  p-value: < 2.2e-16
-=======
-    ##    Min     1Q Median     3Q    Max 
-    ## -90.44 -11.37  -0.45  10.68 136.32 
-    ## 
-    ## Coefficients:
-    ##                         Estimate Std. Error t value Pr(>|t|)    
-    ## (Intercept)            1.212e+02  9.216e+00  13.148  < 2e-16 ***
-    ## avg_ann_count         -2.488e-03  7.781e-04  -3.198 0.001406 ** 
-    ## incidence_rate         1.977e-01  8.939e-03  22.118  < 2e-16 ***
-    ## pop_est2015            6.432e-06  3.270e-06   1.967 0.049283 *  
-    ## poverty_percent        3.513e-01  1.351e-01   2.599 0.009403 ** 
-    ## percent_married       -2.541e-01  1.005e-01  -2.528 0.011557 *  
-    ## pct_bach_deg25_over   -1.893e+00  1.050e-01 -18.033  < 2e-16 ***
-    ## pct_unemployed16_over  6.325e-01  1.838e-01   3.442 0.000590 ***
-    ## birth_rate            -7.465e-01  2.169e-01  -3.443 0.000588 ***
-    ## black_high_ind         3.750e+00  1.119e+00   3.353 0.000814 ***
-    ## ---
-    ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-    ## 
-    ## Residual standard error: 19.43 on 2081 degrees of freedom
-    ## Multiple R-squared:  0.4263, Adjusted R-squared:  0.4238 
-    ## F-statistic: 171.8 on 9 and 2081 DF,  p-value: < 2.2e-16
->>>>>>> ea8b513bc69c8a5b148c8586d360b8bd86753e36
 
 ``` r
 back_no_282 = update(back_model, . ~ ., data = num_df_no_282)
