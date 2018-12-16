@@ -37,19 +37,19 @@ cor(num_df) %>% knitr::kable()
 
 ``` r
 bach = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = pct_bach_deg25_over)) + 
+  ggplot(aes(x  = pct_bach_deg25_over, y = target_death_rate)) + 
   geom_point()
 
 inc = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = incidence_rate)) + 
+  ggplot(aes(x  = incidence_rate, y = target_death_rate)) + 
   geom_point()
 
 income = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = med_income)) + 
+  ggplot(aes(x  = med_income, y = target_death_rate)) + 
   geom_point()
 
 employ = num_df %>% 
-  ggplot(aes(x = target_death_rate, y  = pct_employed16_over)) + 
+  ggplot(aes(x  = pct_employed16_over, y = target_death_rate)) + 
   geom_point()
 
 (bach + inc) / (income + employ)
@@ -313,8 +313,13 @@ rbind(ours, plus) %>%
 
 | model      |  adj.r.squared|    RSE|       AIC|       BIC|  p.value|     cp|   rmse|
 |:-----------|--------------:|------:|---------:|---------:|--------:|------:|------:|
+<<<<<<< HEAD
 | rmse\_step |           0.41|  19.59|  18395.16|  18451.62|        0|  20.82|  19.59|
 | rmse\_plus |           0.42|  19.56|  18391.85|  18459.60|        0|  17.52|  19.55|
+=======
+| rmse\_step |           0.41|  19.59|  18395.16|  18451.62|        0|  20.82|  19.43|
+| rmse\_plus |           0.42|  19.56|  18391.85|  18459.60|        0|  17.52|  19.42|
+>>>>>>> d00e15a318702e7e5d3b1c0e30d416140ee4d77a
 
 ### Ridge Regression
 
@@ -400,7 +405,11 @@ cv_result %>%
 ```
 
     ##   rmse_step rmse_plus rmse_ridge
+<<<<<<< HEAD
     ## 1  19.58799  19.54703   19.14778
+=======
+    ## 1  19.42724  19.41965   19.14778
+>>>>>>> d00e15a318702e7e5d3b1c0e30d416140ee4d77a
 
 Leverages
 ---------
@@ -5112,6 +5121,7 @@ summary(step_no_282_plus)
     ## Residual standard error: 19.45 on 2080 degrees of freedom
     ## Multiple R-squared:  0.4253, Adjusted R-squared:  0.4225 
     ## F-statistic: 153.9 on 10 and 2080 DF,  p-value: < 2.2e-16
+<<<<<<< HEAD
 
 ``` r
 summary(step_model_plus)
@@ -5147,6 +5157,8 @@ summary(step_model_plus)
     ## Residual standard error: 19.56 on 2081 degrees of freedom
     ## Multiple R-squared:  0.4183, Adjusted R-squared:  0.4155 
     ## F-statistic: 149.7 on 10 and 2081 DF,  p-value: < 2.2e-16
+=======
+>>>>>>> d00e15a318702e7e5d3b1c0e30d416140ee4d77a
 
 ``` r
 step_no_1000_plus = update(step_model_plus, . ~ ., data = num_df_no_1000)
