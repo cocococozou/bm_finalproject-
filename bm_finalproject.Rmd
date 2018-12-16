@@ -300,14 +300,14 @@ plot(step_model_plus)
 influence.measures(step_model)
 summary(step_model)
 
-# 282, 1221, 1336 noted as potentially influential 
+# 282, 1221, 1366 noted as potentially influential 
 
 plot(num_df$incidence_rate, num_df$target_death_rate)
 ```
 
 
 
-## Remove Outliers
+## Remove Outliers for First Model
 ```{r}
 # remove observation 282 only
 num_df_no_282 = cancer_df %>% 
@@ -316,26 +316,59 @@ num_df_no_282 = cancer_df %>%
   filter(rowid != 282) %>% 
   na.omit()
 
-step_no_282 = update(step_model_ours, . ~ ., data = num_df_no_282)
-summary(step_no_282)
-
-step_no_282_plus = update(step_model_plus, . ~ ., data = num_df_no_282)
-summary(step_no_282_plus)
-
-back_no_282 = update(back_model, . ~ ., data = num_df_no_282)
-summary(back_no_282)
-
-# remove observations 282, 1221, 1366
-num_df_no_282_1221_1366 = cancer_df %>% 
+num_df_no_1000 = cancer_df %>% 
   dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
   tibble::rowid_to_column() %>% 
-  filter(rowid != 282 & rowid != 1221 & rowid != 1366) %>% 
+  filter(rowid != 1000) %>% 
   na.omit()
 
-step_no282_1221_1366 = update(step_model, . ~ ., data = num_df_no_282_1221_1366)
-summary(step_no282_1221_1366)
+num_df_no_1221 = cancer_df %>% 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
+  tibble::rowid_to_column() %>% 
+  filter(rowid != 1221) %>% 
+  na.omit()
 
-back_no282_1221_1366 = update(back_model, . ~ ., data = num_df_no_282_1221_1366)
-summary(back_no282_1221_1366)
+num_df_no_1366 = cancer_df %>% 
+  dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
+  tibble::rowid_to_column() %>% 
+  filter(rowid != 1366) %>% 
+  na.omit()
+
+step_no_282 = update(step_model_ours, . ~ ., data = num_df_no_282)
+summary(step_no_282)
+summary(step_model_ours)
+
+step_no_1000 = update(step_model_ours, . ~ ., data = num_df_no_1000)
+summary(step_no_1000)
+summary(step_model_ours)
+
+step_no_1221 = update(step_model_ours, . ~ ., data = num_df_no_1221)
+summary(step_no_1221)
+summary(step_model_ours)
+
+step_no_1366 = update(step_model_ours, . ~ ., data = num_df_no_1366)
+summary(step_no_1366)
+summary(step_model_ours)
+
+```
+
+## Remove influential points for Second Model
+```{r}
+step_no_282_plus = update(step_model_plus, . ~ ., data = num_df_no_282)
+summary(step_no_282_plus)
+summary(step_model_plus)
+
+step_no_1000_plus = update(step_model_plus, . ~ ., data = num_df_no_1000)
+summary(step_no_1000_plus)
+summary(step_model_plus)
+
+step_no_1221_plus = update(step_model_plus, . ~ ., data = num_df_no_1221)
+summary(step_no_1221_plus)
+summary(step_model_plus)
+
+step_no_1366_plus = update(step_model_plus, . ~ ., data = num_df_no_1366)
+summary(step_no_1366_plus)
+summary(step_model_plus)
+
 ```
 
