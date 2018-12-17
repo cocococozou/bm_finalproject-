@@ -1,8 +1,7 @@
 ---
-title: "bm_finalproject"
-author: "Coco"
-date: "12/7/2018"
-output: github_document
+title: "Biostatistical Methods Final Project Code"
+author: "Jaisal Amin, Kee-Young Shin, Dana Zeng, Coco Zhou"
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +22,7 @@ library(modelr)
 
 ##Read data
 
-```{r include = FALSE}
+```{r}
  cancer_df <- read.csv(file = "./data/Cancer_Registry.csv") %>% 
    janitor::clean_names() %>% 
    separate(geography, into = c("county", "state"),sep = ",") %>% 
@@ -71,7 +70,7 @@ employ = num_df %>%
 
 
 
-##stepwise 
+## Stepwise 
 
 ```{r results=FALSE}
 full_model = lm(target_death_rate ~ ., data = num_df)
@@ -296,7 +295,7 @@ plot(step_model_plus)
 ```
 
 ## Various Measures of Influence
-```{r}
+```{r, echo = FALSE}
 influence.measures(step_model)
 summary(step_model)
 
