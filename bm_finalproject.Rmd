@@ -6,7 +6,7 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = TRUE)
 library(tidyverse)
 library(multcomp)
 library(faraway)
@@ -23,7 +23,7 @@ library(modelr)
 
 ##Read data
 
-```{r include = FALSE}
+```{r eval =FALSE}
  cancer_df <- read.csv(file = "./data/Cancer_Registry.csv") %>% 
    janitor::clean_names() %>% 
    separate(geography, into = c("county", "state"),sep = ",") %>% 
@@ -47,7 +47,7 @@ num_df <- cancer_df %>%
 
 ## Exploratory Analysis
 
-```{r}
+```{r, eval=F}
 cor(num_df) %>% knitr::kable()
 
 bach = num_df %>% 
@@ -73,7 +73,7 @@ employ = num_df %>%
 
 ##stepwise 
 
-```{r results=FALSE}
+```{r results=FALSE, eval=F}
 full_model = lm(target_death_rate ~ ., data = num_df)
 summary(full_model)
 
@@ -87,7 +87,7 @@ step_model_plus<- update(step_model_ours,.~.+black_high_ind*incidence_rate)
 step_model_plus<- update(step_model_plus,.~.+pct_no_cov)
 ```
 
-```{r}
+```{r, eval=F}
 summary(step_model_ours)
 summary(step_model_plus)
 vif(step_model)
@@ -96,7 +96,7 @@ vif(step_model_plus)
 
 ###Cp&AIC&adjustedr2
 
-```{r}
+```{r, eval=F}
 
 ours = glance(step_model_ours) %>% 
   as.data.frame() %>% 
@@ -117,7 +117,7 @@ We decide to use plus as the final model
 
 
 ##Backward elimination 
-```{r results = FALSE}
+```{r results = FALSE, eval=F}
 
 back_model <- step(full_model, direction = "backward", trace=FALSE ) 
 summary(back_model)
@@ -130,7 +130,7 @@ backward elimination suggest the same with stepwise
 
 ##Forward elimination
 
-```{r results = FALSE}
+```{r results = FALSE, eval=F}
 null<- lm(target_death_rate ~ 1, data = num_df)
 for_model <- step(null, scope=list(lower=null, upper=full_model), direction="forward")
 summary(for_model)
@@ -141,7 +141,7 @@ for_model<- update(for_model,.~.+black_high_ind*incidence_rate)
 
 ```
 
-```{r}
+```{r, eval=F}
 summary(for_model)
 vif(for_model)
 ```
@@ -150,7 +150,7 @@ vif(for_model)
 https://www.cancer.org/latest-news/facts-and-figures-2018-rate-of-deaths-from-cancer-continues-decline.html
 
 ### Cross validation
-```{r}
+```{r,eval=F}
 
 
 cv_df <-  crossv_mc(num_df, n=100, test = .2)
@@ -191,7 +191,7 @@ rmse_result <- cv_result %>%
 ```
 
 ### Criterion Method Summary
-```{r}
+```{r, eval=F}
 rbind(ours, plus) %>% 
   cbind(.,rmse_result) %>% 
   dplyr::select(model, everything()) %>% 
@@ -200,7 +200,8 @@ rbind(ours, plus) %>%
 
 
 ### Ridge Regression
-```{r}
+
+```{r, eval=F}
 # Try a grid of values for lambda: from 10^-2 to 10^5
 
 grid <- 10^seq(5,-2, length=100)
@@ -250,8 +251,9 @@ cv_result %>%
   mutate(rmse_ridge = rmse_ridge)
 ```
 
+
 ## Leverages
-```{r}
+```{r, eval=F}
 lev_step = hat(model.matrix(step_model_ours))
 lev_step_plus = hat(model.matrix(step_model_plus))
 
@@ -267,7 +269,7 @@ num_df[lev_step_plus > 0.20,] #observation 282 and 1000
 
 
 ## Outliers Using Studentized Residuals 
-```{r}
+```{r, eval=F}
 stu_res_step = rstandard(step_model_ours)
 outliers_y_step = stu_res_step[abs(stu_res_step) > 2.5]
 outliers_y_step
@@ -284,7 +286,7 @@ outliers_y_back
 ```
 
 ## Cook's Distance 
-```{r}
+```{r, eval=F}
 # step model ours
 plot(step_model_ours)
 
@@ -296,7 +298,7 @@ plot(step_model_plus)
 ```
 
 ## Various Measures of Influence
-```{r}
+```{r, eval=F}
 influence.measures(step_model)
 summary(step_model)
 
@@ -308,7 +310,7 @@ plot(num_df$incidence_rate, num_df$target_death_rate)
 
 
 ## Remove Outliers for First Model
-```{r}
+```{r, eval=F}
 # remove observation 282 only
 num_df_no_282 = cancer_df %>% 
   dplyr::select(-county, -state, -median_age_male, -median_age_female,-pct_white,-pct_black,-pct_asian,-pct_other_race) %>% 
@@ -353,7 +355,7 @@ summary(step_model_ours)
 ```
 
 ## Remove influential points for Second Model
-```{r}
+```{r, eval=F}
 step_no_282_plus = update(step_model_plus, . ~ ., data = num_df_no_282)
 summary(step_no_282_plus)
 summary(step_model_plus)
